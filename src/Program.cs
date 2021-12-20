@@ -13,6 +13,7 @@ namespace src
     {
         public static void Main(string[] args)
         {
+            Console.WriteLine("blyat");
             CreateHostBuilder(args).Build().Run();
         }
 
