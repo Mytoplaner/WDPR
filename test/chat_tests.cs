@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System.Threading.Tasks;
 using System.Linq;
+using src.Controllers;
+using Microsoft.AspNetCore.SignalR;
 
 namespace test
 {
@@ -133,5 +135,43 @@ namespace test
 
             Assert.True(result);
         }
+
+        [Fact]
+            public void GroepsChat_Zoek_list()
+            {
+                var _context = GetInMemoryDBMetData();
+                var HCAmock = new Mock<IHttpContextAccessor>();
+                var chatmock = new Mock<IHubContext<ChatHub>>();
+
+                var hulpverlener = _context.Hulpverleners.First();
+                var kuga = _context.Clienten.First();
+                var osamu = new Client(){Voornaam = "Osamu", hulpverlener = hulpverlener};
+                var chika = new Client(){Voornaam = "Osamu", hulpverlener = hulpverlener};
+                var usui = new Client(){Voornaam = "Usui", hulpverlener = hulpverlener};
+
+                _context.Clienten.Add(osamu);
+                _context.Clienten.Add(chika);
+                _context.Clienten.Add(usui);
+
+                var clientenlijst1 = new List<Client>(){usui, chika};
+                var clientenlijst12 = new List<Client>(){osamu, kuga};
+
+                var groep1 = new GroepsChat(){hulpverlener = hulpverlener, Deelnemers = clientenlijst1, Onderwerp = "One Piece"};
+                var groep2 = new GroepsChat(){hulpverlener = hulpverlener, Deelnemers = clientenlijst12, Onderwerp = "World Trigger"};
+
+                _context.groepsChats.Add(groep1);
+                _context.groepsChats.Add(groep2);
+                _context.SaveChanges();
+
+                var sut = new GroepsChatController(_context, HCAmock.Object, chatmock.Object, GetMockUserManager().Object);
+
+                //Act
+                _context.groepsChats.Include(x => x.Deelnemers);
+                var results = sut.Zoek(_context.groepsChats, "One", null);
+
+                //Assert
+                var result = results.First().Onderwerp;
+                Assert.True(result == "One Piece");
+            }
     }
 }
