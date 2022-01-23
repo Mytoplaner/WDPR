@@ -44,6 +44,7 @@ namespace test
             return new Mock<UserManager<ApplicatieGebruiker>>(
                 userStoreMock.Object, null, null, null, null, null, null, null, null);
         }
+
         //testen of een verzender correct wordt opgeslagen. 
         [Fact]
         public void verzender_van_bericht_in_chat_isgelijk()  //requirement voor prive chat, aan de chatid kunnen we de verzender van een bericht herleiden
@@ -178,9 +179,7 @@ namespace test
         public void MisbruikMelding_test()
         {
             // Given
-            var _context = GetInMemoryDBMetData();
-            _context.SaveChanges();
-            
+            var _context = GetInMemoryDBMetData();   
             var client = _context.Clienten.First();
             var hulpverlener = _context.Hulpverleners.First();
             
@@ -199,6 +198,30 @@ namespace test
             var loadedmelding = _context.MisbruikMelding.First().Melding;
 
             Assert.True(loadedmelding.Equals(meldingstring));
+        }
+
+        [Fact]
+        public void TestName()
+        {
+            // Given
+            var _context = GetInMemoryDBMetData();   
+            var client = _context.Clienten.First();
+            var hulpverlener = _context.Hulpverleners.First();
+            var httpMock = new Mock<IHttpContextAccessor>();
+
+            var applicatieuser = new ApplicatieGebruiker(){Id = "vers"};
+
+            client.User = applicatieuser;
+            _context.Update(client);
+
+            httpMock.Setup(x => x.HttpContext.User).Returns(new ClaimsPrincipal(){});
+
+            var sut = new PriveChatController(_context, httpMock.Object);
+            // Arrange
+
+            // When
+
+            // Then
         }
     }
 }
