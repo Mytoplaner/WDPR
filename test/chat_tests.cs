@@ -21,8 +21,6 @@ namespace test
         DatabaseContext context = GetNewInMemoryDatabase(true);
         var hulpverlener = new Hulpverlener() {Voornaam = "Bamster", Achternaam = "trionhe"};
         var client = new Client() {Voornaam = "Kuga", Achternaam = "Yuma", hulpverlener = hulpverlener};
-
-
         context.Hulpverleners.Add(hulpverlener);
         context.Clienten.Add(client);
         //context.Chats.Add(chat);
@@ -101,6 +99,38 @@ namespace test
             _context.SaveChanges();
             // Then
             var result = _context.groepsChats.Any(x => x.Onderwerp == "World Trigger");
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void chatten_in_eenzelfde_hulpgroep_model_tests()
+        {
+            // Given
+            var _context = GetInMemoryDBMetData();
+            var hulpverlener = _context.Hulpverleners.First();
+            var kuga = _context.Clienten.First();
+            var osamu = new Client(){Voornaam = "Osamu", hulpverlener = hulpverlener};
+            var chika = new Client(){Voornaam = "Osamu", hulpverlener = hulpverlener};
+            _context.Clienten.Add(osamu);
+            _context.Clienten.Add(chika);
+            var zelfhulpgroep = new GroepsChat(){Onderwerp = "World Trigger", hulpverlener = hulpverlener};
+            zelfhulpgroep.Deelnemers.Add(osamu);
+            zelfhulpgroep.Deelnemers.Add(kuga);
+            zelfhulpgroep.Deelnemers.Add(chika);
+            _context.groepsChats.Add(zelfhulpgroep);
+            _context.SaveChanges();
+            // When
+            var kugabericht = new Bericht(){Verzender = kuga, text = "Trigger on!"};
+            var osamubericht = new Bericht(){Verzender = osamu, text = "Raygust on!"};
+            var chikabericht = new Bericht(){Verzender = chika, text = "Meteor!"};
+            _context.groepsChats.Include(x => x.Deelnemers);
+            var groepschat = _context.groepsChats.First();
+            groepschat.Berichten.AddRange(new List<Bericht>(){kugabericht, osamubericht, chikabericht});
+            _context.Update(groepschat);
+            _context.SaveChanges();
+            // Then
+            var result = groepschat.Berichten.Count() == 3;
+
             Assert.True(result);
         }
     }
