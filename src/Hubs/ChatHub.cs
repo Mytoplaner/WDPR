@@ -12,11 +12,8 @@ namespace SignalRChat.Hubs
     public class ChatHub : Hub
     {
         private readonly DatabaseContext _context;
-        private readonly SignInManager<ApplicatieGebruiker> _signInManager;
-
-        public ChatHub(DatabaseContext context, SignInManager<ApplicatieGebruiker> signInManager){
+        public ChatHub(DatabaseContext context){
             _context = context;
-            _signInManager = signInManager;
         }
         public async Task SendMessage(string user, string message, string userId)
         {
