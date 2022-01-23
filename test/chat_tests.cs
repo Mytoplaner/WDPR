@@ -173,5 +173,32 @@ namespace test
                 var result = results.First().Onderwerp;
                 Assert.True(result == "One Piece");
             }
+
+        [Fact]
+        public void MisbruikMelding_test()
+        {
+            // Given
+            var _context = GetInMemoryDBMetData();
+            _context.SaveChanges();
+            
+            var client = _context.Clienten.First();
+            var hulpverlener = _context.Hulpverleners.First();
+            
+            var meldingstring = "Dit is sensitive";
+            var chat = new Chat() {hulpverlener = hulpverlener, client = client, Id = 1};
+            _context.Add(chat);
+
+            var bericht = new Bericht(){Verzender = client, text = "Java is beter dan C#"};
+            _context.Berichten.Add(bericht);
+
+            // When
+            var melding = new MisbruikMelding(){Melding = "Dit is sensitive", BerichtId = bericht.Id};
+            _context.MisbruikMelding.Add(melding);
+            _context.SaveChanges();
+            // Then
+            var loadedmelding = _context.MisbruikMelding.First().Melding;
+
+            Assert.True(loadedmelding.Equals(meldingstring));
+        }
     }
 }
